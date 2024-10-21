@@ -1,75 +1,105 @@
-import random
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لعبة الصيد</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            text-align: center;
+            background-color: #87ceeb; /* لون السماء */
+        }
+        #fishingArea {
+            width: 600px;
+            height: 400px;
+            background-color: #00bfff; /* لون البحر */
+            position: relative;
+            overflow: hidden;
+            margin: auto;
+            border: 2px solid #000;
+        }
+        .fish {
+            position: absolute;
+            width: 50px;
+            height: 30px;
+            background-color: red; /* يمكن تغيير اللون لكل نوع من الأسماك */
+            border-radius: 5px;
+            transition: transform 0.2s;
+        }
+        .rod {
+            position: absolute;
+            width: 5px;
+            height: 100px;
+            background-color: #654321; /* لون السنارة */
+            left: 50%;
+            bottom: 0;
+            transform: translateX(-50%);
+        }
+        .score {
+            font-size: 24px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>لعبة الصيد</h1>
+    <div id="fishingArea">
+        <div class="rod" id="rod"></div>
+        <!-- الأسماك ستضاف هنا -->
+    </div>
+    <div class="score" id="score">النقاط: 0</div>
+    <button onclick="startGame()">ابدأ اللعبة</button>
 
-# Function to print the game board
-def print_board(board):
-    for row in board:
-        print("|".join(row))
-        print("-" * 5)
+    <script>
+        let score = 0;
+        const fishingArea = document.getElementById('fishingArea');
+        const rod = document.getElementById('rod');
 
-# Function to check if there's a winner
-def check_winner(board, player):
-    # Check rows, columns, and diagonals for a win
-    for row in board:
-        if all([spot == player for spot in row]):
-            return True
-    for col in range(3):
-        if all([board[row][col] == player for row in range(3)]):
-            return True
-    if board[0][0] == board[1][1] == board[2][2] == player:
-        return True
-    if board[0][2] == board[1][1] == board[2][0] == player:
-        return True
-    return False
+        function startGame() {
+            score = 0;
+            document.getElementById('score').innerText = `النقاط: ${score}`;
+            addFish();
+            document.addEventListener('mousemove', moveRod);
+        }
 
-# Function to check if the board is full (a tie)
-def is_board_full(board):
-    return all([spot != " " for row in board for spot in row])
+        function moveRod(event) {
+            const rect = fishingArea.getBoundingClientRect();
+            const rodHeight = rod.offsetHeight;
+            const y = event.clientY - rect.top - rodHeight / 2;
+            rod.style.bottom = `${Math.max(0, Math.min(rect.height - rodHeight, y))}px`;
+        }
 
-# Function to get a random empty spot for the computer
-def get_computer_move(board):
-    empty_spots = [(r, c) for r in range(3) for c in range(3) if board[r][c] == " "]
-    return random.choice(empty_spots)
+        function addFish() {
+            const fish = document.createElement('div');
+            fish.className = 'fish';
+            fish.style.left = Math.random() * (fishingArea.clientWidth - 50) + 'px';
+            fish.style.top = Math.random() * (fishingArea.clientHeight - 30) + 'px';
 
-# Main function to play the game
-def play_game():
-    board = [[" " for _ in range(3)] for _ in range(3)]
-    current_player = "X"
+            // تعيين قيمة نقاط عشوائية للأسماك
+            const value = Math.floor(Math.random() * 100) + 1;
+            fish.dataset.value = value;
+            fish.innerText = value; // إظهار قيمة النقاط
 
-    # Choose the number of players
-    num_players = int(input("Enter number of players (1 or 2): "))
+            fishingArea.appendChild(fish);
 
-    while True:
-        print_board(board)
+            // إضافة حدث النقر لصيد السمكة
+            fish.addEventListener('click', () => {
+                score += value;
+                document.getElementById('score').innerText = `النقاط: ${score}`;
+                fishingArea.removeChild(fish);
+            });
 
-        if num_players == 1 and current_player == "O":  # Computer's turn
-            row, col = get_computer_move(board)
-            print(f"Computer chose row {row}, column {col}.")
-        else:
-            row = int(input(f"Player {current_player}, enter the row (0, 1, 2): "))
-            col = int(input(f"Player {current_player}, enter the column (0, 1, 2): "))
+            // تجديد الأسماك بعد 2 ثانية
+            setTimeout(() => {
+                if (fishingArea.contains(fish)) {
+                    fishingArea.removeChild(fish);
+                }
+            }, 2000); // السمكة تختفي بعد 2 ثانية
 
-        # Check if the spot is empty
-        if board[row][col] == " ":
-            board[row][col] = current_player
-        else:
-            print("This spot is already taken. Try again.")
-            continue
-
-        # Check if the current player has won
-        if check_winner(board, current_player):
-            print_board(board)
-            print(f"Player {current_player} wins!")
-            break
-
-        # Check if the game is a tie
-        if is_board_full(board):
-            print_board(board)
-            print("It's a tie!")
-            break
-
-        # Switch players
-        current_player = "O" if current_player == "X" else "X"
-
-# Run the game
-if __name__ == "__main__":
-    play_game()
+            // استدعاء وظيفة إضافة سمكة جديدة
+            setTimeout(addFish, 1000);
+        }
+    </script>
+</body>
+</html>
