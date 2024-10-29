@@ -67,7 +67,7 @@
             font-size: 24px;
             color: #ff0;
             display: none;
-            transition: top 2s, left 2s, opacity 1s;
+            transition: opacity 1s;
         }
     </style>
 </head>
@@ -201,16 +201,21 @@
         }
 
         function showMessage() {
+            // تعيين الرسالة الحالية
             messageBox.innerText = messages[messageIndex];
             messageBox.style.left = Math.random() * (canvas.width - 100) + "px";
             messageBox.style.top = Math.random() * (canvas.height - 50) + "px";
             messageBox.style.display = 'block';
             messageBox.style.opacity = "1";
 
+            // إخفاء الرسالة بعد 3 ثوانٍ وتحديث الرسالة التالية
             setTimeout(() => {
-                messageBox.style.opacity = "0";
-                messageIndex = (messageIndex + 1) % messages.length;
-            }, 3000);
+                messageBox.style.opacity = "0";  // يبدأ التلاشي
+                setTimeout(() => {
+                    messageBox.style.display = 'none'; // إخفاء الرسالة تمامًا
+                    messageIndex = (messageIndex + 1) % messages.length; // تحديث المؤشر
+                }, 1000);
+            }, 2000);
         }
 
         function shoot() {
