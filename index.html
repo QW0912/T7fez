@@ -61,6 +61,16 @@
             justify-content: space-between;
             bottom: auto;
         }
+
+        .message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            color: #ff0;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -77,11 +87,13 @@
             <div class="button" onclick="moveRight()">▶️</div>
             <div class="button" onclick="switchWeapon()">🔄 سلاح</div>
         </div>
+        <div class="message" id="message">كفو، و هذي بنت شمر، و حي عينتس!</div>
     </div>
 
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
+        const messageBox = document.getElementById('message');
         canvas.width = 600;
         canvas.height = 500;
 
@@ -101,6 +113,7 @@
         let lives = 3;
         let level = 1;
         let enemySpeed = 2;
+        let autoPlay = false;
 
         function drawPlayer() {
             ctx.fillStyle = player.color;
@@ -144,7 +157,7 @@
                 enemy.y += enemy.speed;
                 drawEnemy(enemy);
 
-                if (enemy.y > canvas.height) {
+                if (enemy.y > canvas.height && !autoPlay) {
                     enemies.splice(eIndex, 1);
                     lives -= 1;
                     updateLives();
@@ -163,7 +176,7 @@
                 });
             });
 
-            if (lives <= 0) {
+            if (lives <= 0 && !autoPlay) {
                 alert("Game Over! Your final score: " + score);
                 resetGame();
             }
@@ -172,7 +185,23 @@
                 levelUp();
             }
 
+            if (autoPlay) {
+                autoMoveAndShoot();
+            }
+
             requestAnimationFrame(update);
+        }
+
+        function autoMoveAndShoot() {
+            player.x += player.speed * (Math.random() > 0.5 ? 1 : -1);
+            player.x = Math.max(0, Math.min(player.x, canvas.width - player.width));
+            shoot();
+            showMessage();
+        }
+
+        function showMessage() {
+            messageBox.style.display = 'block';
+            setTimeout(() => messageBox.style.display = 'none', 1000);
         }
 
         function shoot() {
@@ -225,8 +254,19 @@
             document.getElementById('level').innerText = level;
         }
 
+        function checkAnswer() {
+            let answer = prompt("من هي الفتاة التي لا تخسر ويجب على نظام العبه اللعب بدلًا منها و الفوز لأجلها؟");
+            if (answer === "ودوده") {
+                alert("إجابة صحيحة! سيتم تشغيل اللعبة بشكل تلقائي.");
+                autoPlay = true;
+            } else {
+                alert("إجابة خاطئة! استمر باللعب.");
+            }
+        }
+
         setInterval(spawnEnemy, 2000);
         update();
+        checkAnswer();
     </script>
 </body>
 </html>
