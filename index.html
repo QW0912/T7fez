@@ -67,7 +67,7 @@
             font-size: 24px;
             color: #ff0;
             display: none;
-            transition: top 2s, left 2s; /* للتحكم في السرعة */
+            transition: top 2s, left 2s, opacity 1s; /* حركة بطيئة وتلاشي سلس */
         }
     </style>
 </head>
@@ -205,9 +205,10 @@
             messageBox.style.left = Math.random() * (canvas.width - 100) + "px";
             messageBox.style.top = Math.random() * (canvas.height - 50) + "px";
             messageBox.style.display = 'block';
+            messageBox.style.opacity = "1";
 
             setTimeout(() => {
-                messageBox.style.display = 'none';
+                messageBox.style.opacity = "0";  // يبدأ التلاشي
                 messageIndex = (messageIndex + 1) % messages.length;
             }, 3000);
         }
