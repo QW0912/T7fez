@@ -67,7 +67,7 @@
             font-size: 24px;
             color: #ff0;
             display: none;
-            transition: top 2s, left 2s, opacity 1s; /* حركة بطيئة وتلاشي سلس */
+            transition: top 2s, left 2s, opacity 1s;
         }
     </style>
 </head>
@@ -208,7 +208,7 @@
             messageBox.style.opacity = "1";
 
             setTimeout(() => {
-                messageBox.style.opacity = "0";  // يبدأ التلاشي
+                messageBox.style.opacity = "0";
                 messageIndex = (messageIndex + 1) % messages.length;
             }, 3000);
         }
