@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لعبة تصويب محسّنة</title>
+    <title>لعبة تصويب ممتعة</title>
     <style>
         * {
             margin: 0;
@@ -19,6 +19,7 @@
             align-items: center;
             background-color: #222;
             overflow: hidden;
+            font-family: Arial, sans-serif;
         }
 
         .game-container {
@@ -32,16 +33,18 @@
         canvas {
             width: 100%;
             height: 100%;
-            background: url('https://via.placeholder.com/800x600') no-repeat center center;
-            background-size: cover;
+            background-color: #333;
         }
 
-        .controls {
+        .controls, .scoreboard {
             position: absolute;
-            bottom: 10px;
             width: 100%;
             display: flex;
             justify-content: space-around;
+            align-items: center;
+            bottom: 10px;
+            color: #fff;
+            font-size: 20px;
         }
 
         .button {
@@ -49,14 +52,25 @@
             color: white;
             padding: 10px 20px;
             border-radius: 5px;
-            font-size: 20px;
+            font-size: 18px;
             user-select: none;
+        }
+
+        .scoreboard {
+            top: 10px;
+            justify-content: space-between;
+            bottom: auto;
         }
     </style>
 </head>
 <body>
     <div class="game-container">
         <canvas id="gameCanvas"></canvas>
+        <div class="scoreboard">
+            <span>Score: <span id="score">0</span></span>
+            <span>Lives: <span id="lives">3</span></span>
+            <span>Level: <span id="level">1</span></span>
+        </div>
         <div class="controls">
             <div class="button" onclick="moveLeft()">◀️</div>
             <div class="button" onclick="shoot()">🔫</div>
@@ -72,11 +86,11 @@
         canvas.height = 500;
 
         let player = {
-            x: canvas.width / 2,
-            y: canvas.height - 50,
+            x: canvas.width / 2 - 25,
+            y: canvas.height - 60,
             width: 50,
             height: 50,
-            color: 'white',
+            color: 'cyan',
             speed: 20,
             weapon: 'pistol'
         };
@@ -84,6 +98,9 @@
         let bullets = [];
         let enemies = [];
         let score = 0;
+        let lives = 3;
+        let level = 1;
+        let enemySpeed = 2;
 
         function drawPlayer() {
             ctx.fillStyle = player.color;
@@ -91,22 +108,22 @@
         }
 
         function drawBullet(bullet) {
-            ctx.fillStyle = 'red';
+            ctx.fillStyle = 'yellow';
             ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
         }
 
         function drawEnemy(enemy) {
-            ctx.fillStyle = 'green';
+            ctx.fillStyle = 'red';
             ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
         }
 
         function spawnEnemy() {
             let enemy = {
                 x: Math.random() * (canvas.width - 50),
-                y: 0,
+                y: -50,
                 width: 50,
                 height: 50,
-                speed: 2 + Math.random() * 2
+                speed: enemySpeed
             };
             enemies.push(enemy);
         }
@@ -120,9 +137,7 @@
                 bullet.y -= bullet.speed;
                 drawBullet(bullet);
 
-                if (bullet.y < 0) {
-                    bullets.splice(index, 1);
-                }
+                if (bullet.y < 0) bullets.splice(index, 1);
             });
 
             enemies.forEach((enemy, eIndex) => {
@@ -131,21 +146,31 @@
 
                 if (enemy.y > canvas.height) {
                     enemies.splice(eIndex, 1);
+                    lives -= 1;
+                    updateLives();
                 }
 
                 bullets.forEach((bullet, bIndex) => {
-                    if (
-                        bullet.x < enemy.x + enemy.width &&
+                    if (bullet.x < enemy.x + enemy.width &&
                         bullet.x + bullet.width > enemy.x &&
                         bullet.y < enemy.y + enemy.height &&
-                        bullet.y + bullet.height > enemy.y
-                    ) {
+                        bullet.y + bullet.height > enemy.y) {
                         bullets.splice(bIndex, 1);
                         enemies.splice(eIndex, 1);
                         score += 10;
+                        updateScore();
                     }
                 });
             });
+
+            if (lives <= 0) {
+                alert("Game Over! Your final score: " + score);
+                resetGame();
+            }
+
+            if (score >= level * 50) {
+                levelUp();
+            }
 
             requestAnimationFrame(update);
         }
@@ -171,6 +196,33 @@
 
         function switchWeapon() {
             player.weapon = player.weapon === 'pistol' ? 'rifle' : 'pistol';
+        }
+
+        function updateScore() {
+            document.getElementById('score').innerText = score;
+        }
+
+        function updateLives() {
+            document.getElementById('lives').innerText = lives;
+        }
+
+        function levelUp() {
+            level += 1;
+            enemySpeed += 1;
+            document.getElementById('level').innerText = level;
+            spawnEnemy();
+        }
+
+        function resetGame() {
+            score = 0;
+            lives = 3;
+            level = 1;
+            enemySpeed = 2;
+            bullets = [];
+            enemies = [];
+            updateScore();
+            updateLives();
+            document.getElementById('level').innerText = level;
         }
 
         setInterval(spawnEnemy, 2000);
