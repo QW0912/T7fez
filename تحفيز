@@ -1,105 +1,180 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لعبة الصيد</title>
+    <title>لعبة تصويب محسّنة</title>
     <style>
-        body {
-            font-family: 'Comic Sans MS', cursive, sans-serif;
-            text-align: center;
-            background-color: #87ceeb; /* لون السماء */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        #fishingArea {
-            width: 600px;
-            height: 400px;
-            background-color: #00bfff; /* لون البحر */
-            position: relative;
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #222;
             overflow: hidden;
-            margin: auto;
-            border: 2px solid #000;
         }
-        .fish {
+
+        .game-container {
+            position: relative;
+            width: 100vw;
+            height: 80vh;
+            max-width: 600px;
+            border: 2px solid #fff;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            background: url('https://via.placeholder.com/800x600') no-repeat center center;
+            background-size: cover;
+        }
+
+        .controls {
             position: absolute;
-            width: 50px;
-            height: 30px;
-            background-color: red; /* يمكن تغيير اللون لكل نوع من الأسماك */
+            bottom: 10px;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .button {
+            background-color: #555;
+            color: white;
+            padding: 10px 20px;
             border-radius: 5px;
-            transition: transform 0.2s;
-        }
-        .rod {
-            position: absolute;
-            width: 5px;
-            height: 100px;
-            background-color: #654321; /* لون السنارة */
-            left: 50%;
-            bottom: 0;
-            transform: translateX(-50%);
-        }
-        .score {
-            font-size: 24px;
-            margin-top: 20px;
+            font-size: 20px;
+            user-select: none;
         }
     </style>
 </head>
 <body>
-    <h1>لعبة الصيد</h1>
-    <div id="fishingArea">
-        <div class="rod" id="rod"></div>
-        <!-- الأسماك ستضاف هنا -->
+    <div class="game-container">
+        <canvas id="gameCanvas"></canvas>
+        <div class="controls">
+            <div class="button" onclick="moveLeft()">◀️</div>
+            <div class="button" onclick="shoot()">🔫</div>
+            <div class="button" onclick="moveRight()">▶️</div>
+            <div class="button" onclick="switchWeapon()">🔄 سلاح</div>
+        </div>
     </div>
-    <div class="score" id="score">النقاط: 0</div>
-    <button onclick="startGame()">ابدأ اللعبة</button>
 
     <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 600;
+        canvas.height = 500;
+
+        let player = {
+            x: canvas.width / 2,
+            y: canvas.height - 50,
+            width: 50,
+            height: 50,
+            color: 'white',
+            speed: 20,
+            weapon: 'pistol'
+        };
+
+        let bullets = [];
+        let enemies = [];
         let score = 0;
-        const fishingArea = document.getElementById('fishingArea');
-        const rod = document.getElementById('rod');
 
-        function startGame() {
-            score = 0;
-            document.getElementById('score').innerText = `النقاط: ${score}`;
-            addFish();
-            document.addEventListener('mousemove', moveRod);
+        function drawPlayer() {
+            ctx.fillStyle = player.color;
+            ctx.fillRect(player.x, player.y, player.width, player.height);
         }
 
-        function moveRod(event) {
-            const rect = fishingArea.getBoundingClientRect();
-            const rodHeight = rod.offsetHeight;
-            const y = event.clientY - rect.top - rodHeight / 2;
-            rod.style.bottom = `${Math.max(0, Math.min(rect.height - rodHeight, y))}px`;
+        function drawBullet(bullet) {
+            ctx.fillStyle = 'red';
+            ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
         }
 
-        function addFish() {
-            const fish = document.createElement('div');
-            fish.className = 'fish';
-            fish.style.left = Math.random() * (fishingArea.clientWidth - 50) + 'px';
-            fish.style.top = Math.random() * (fishingArea.clientHeight - 30) + 'px';
+        function drawEnemy(enemy) {
+            ctx.fillStyle = 'green';
+            ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+        }
 
-            // تعيين قيمة نقاط عشوائية للأسماك
-            const value = Math.floor(Math.random() * 100) + 1;
-            fish.dataset.value = value;
-            fish.innerText = value; // إظهار قيمة النقاط
+        function spawnEnemy() {
+            let enemy = {
+                x: Math.random() * (canvas.width - 50),
+                y: 0,
+                width: 50,
+                height: 50,
+                speed: 2 + Math.random() * 2
+            };
+            enemies.push(enemy);
+        }
 
-            fishingArea.appendChild(fish);
+        function update() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // إضافة حدث النقر لصيد السمكة
-            fish.addEventListener('click', () => {
-                score += value;
-                document.getElementById('score').innerText = `النقاط: ${score}`;
-                fishingArea.removeChild(fish);
+            drawPlayer();
+
+            bullets.forEach((bullet, index) => {
+                bullet.y -= bullet.speed;
+                drawBullet(bullet);
+
+                if (bullet.y < 0) {
+                    bullets.splice(index, 1);
+                }
             });
 
-            // تجديد الأسماك بعد 2 ثانية
-            setTimeout(() => {
-                if (fishingArea.contains(fish)) {
-                    fishingArea.removeChild(fish);
-                }
-            }, 2000); // السمكة تختفي بعد 2 ثانية
+            enemies.forEach((enemy, eIndex) => {
+                enemy.y += enemy.speed;
+                drawEnemy(enemy);
 
-            // استدعاء وظيفة إضافة سمكة جديدة
-            setTimeout(addFish, 1000);
+                if (enemy.y > canvas.height) {
+                    enemies.splice(eIndex, 1);
+                }
+
+                bullets.forEach((bullet, bIndex) => {
+                    if (
+                        bullet.x < enemy.x + enemy.width &&
+                        bullet.x + bullet.width > enemy.x &&
+                        bullet.y < enemy.y + enemy.height &&
+                        bullet.y + bullet.height > enemy.y
+                    ) {
+                        bullets.splice(bIndex, 1);
+                        enemies.splice(eIndex, 1);
+                        score += 10;
+                    }
+                });
+            });
+
+            requestAnimationFrame(update);
         }
+
+        function shoot() {
+            let bullet = {
+                x: player.x + player.width / 2 - 2.5,
+                y: player.y,
+                width: player.weapon === 'pistol' ? 5 : 10,
+                height: player.weapon === 'pistol' ? 10 : 20,
+                speed: player.weapon === 'pistol' ? 5 : 8
+            };
+            bullets.push(bullet);
+        }
+
+        function moveLeft() {
+            if (player.x > 0) player.x -= player.speed;
+        }
+
+        function moveRight() {
+            if (player.x + player.width < canvas.width) player.x += player.speed;
+        }
+
+        function switchWeapon() {
+            player.weapon = player.weapon === 'pistol' ? 'rifle' : 'pistol';
+        }
+
+        setInterval(spawnEnemy, 2000);
+        update();
     </script>
 </body>
 </html>
