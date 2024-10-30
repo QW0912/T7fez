@@ -71,26 +71,27 @@
         }
         .counter {
             display: inline-block;
-            font-size: 16px;
+            font-size: 18px;
             background-color: #e0f2f1;
             color: #00796b;
-            padding: 5px 10px;
+            padding: 10px 15px; /* تكبير حجم زر التكرار */
             border-radius: 5px;
             cursor: pointer;
             user-select: none;
             transition: background-color 0.3s, color 0.3s;
+            margin-right: 10px;
         }
         .favorite {
             display: inline-block;
-            font-size: 20px;
+            font-size: 24px;
             color: #ffdd57;
             cursor: pointer;
-            margin-left: 10px;
+            margin-left: 20px; /* إبعاد النجمة قليلاً عن زر التكرار */
         }
         .remove-favorite {
             color: #ff0000;
             cursor: pointer;
-            margin-left: 10px;
+            margin-left: 20px; /* إبعاد أيقونة الحذف قليلاً عن زر التكرار */
         }
         .video-grid {
             display: flex;
@@ -197,7 +198,7 @@
             document.getElementById('main-content').style.display = 'block';
         }
 
-        function createAthkar(athkarArray) {
+        function createAthkar(athkarArray, isFavoriteSection = false) {
             closeAllSections();
             const athkarDiv = document.getElementById('athkar');
             athkarDiv.innerHTML = '';
@@ -207,7 +208,7 @@
                 athkarElement.innerHTML = `
                     <p>${athkar.text}</p>
                     <div class="counter" onclick="decrementCounter(this)">${athkar.repeat}</div>
-                    <span class="remove-favorite" onclick="confirmRemoveFavorite('${athkar.text}')">🗑️</span>
+                    ${isFavoriteSection ? `<span class="remove-favorite" onclick="confirmRemoveFavorite('${athkar.text}')">🗑️</span>` : `<span class="favorite" onclick="addToFavorites('${athkar.text}', ${athkar.repeat})">⭐</span>`}
                 `;
                 athkarDiv.appendChild(athkarElement);
                 athkarDiv.appendChild(document.createElement('hr'));
@@ -238,7 +239,7 @@
                 text: athkar.text,
                 repeat: athkar.repeat
             }));
-            createAthkar(favoriteAthkar);
+            createAthkar(favoriteAthkar, true);
         }
 
         function confirmRemoveFavorite(athkarText) {
