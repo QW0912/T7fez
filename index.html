@@ -1,286 +1,138 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لعبة تصويب ممتعة</title>
+    <title>أذكار الصباح والمساء والقرآن الكريم</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body, html {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: #222;
-            overflow: hidden;
-            font-family: Arial, sans-serif;
-        }
-
-        .game-container {
-            position: relative;
-            width: 100vw;
-            height: 80vh;
-            max-width: 600px;
-            border: 2px solid #fff;
-        }
-
-        canvas {
-            width: 100%;
-            height: 100%;
-            background-color: #333;
-        }
-
-        .controls, .scoreboard {
-            position: absolute;
-            width: 100%;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            bottom: 10px;
-            color: #fff;
-            font-size: 20px;
-        }
-
-        .button {
-            background-color: #555;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
-            font-size: 18px;
-            user-select: none;
-        }
-
-        .scoreboard {
-            top: 10px;
-            justify-content: space-between;
-            bottom: auto;
-        }
-
-        .message {
-            position: absolute;
-            font-size: 24px;
-            color: #ff0;
-            display: none;
-            transition: opacity 1s;
-        }
+        /* أكمل باقي التنسيقات هنا */
     </style>
 </head>
 <body>
-    <div class="game-container">
-        <canvas id="gameCanvas"></canvas>
-        <div class="scoreboard">
-            <span>Score: <span id="score">0</span></span>
-            <span>Lives: <span id="lives">3</span></span>
-            <span>Level: <span id="level">1</span></span>
-        </div>
-        <div class="controls">
-            <div class="button" onclick="moveLeft()">◀️</div>
-            <div class="button" onclick="shoot()">🔫</div>
-            <div class="button" onclick="moveRight()">▶️</div>
-            <div class="button" onclick="switchWeapon()">🔄 سلاح</div>
-        </div>
-        <div class="message" id="message">كفو!</div>
+    <div id="login-screen" class="container">
+        <h1>مرحبًا بك في موقع الأذكار</h1>
+        <p>أدخل الرقم التسلسلي الخاص بك:</p>
+        <input type="text" id="serial-input" placeholder="الرقم التسلسلي المكون من 20 رقمًا" maxlength="20">
+        <br>
+        <button onclick="login()">الدخول</button>
+        <button onclick="generateSerial()">الحصول على رقم تسلسلي جديد</button>
+        <div class="footer">المطور: <a href="https://www.instagram.com/_w0112" target="_blank">@_w0112</a></div>
+    </div>
+
+    <div id="main-content" class="container" style="display: none;">
+        <button class="dark-mode-btn" onclick="toggleDarkMode()">تبديل الوضع الليلي</button>
+        <button onclick="showMorning()">أذكار الصباح</button>
+        <button onclick="showEvening()">أذكار المساء</button>
+        <button onclick="showRandom()">ذكر عشوائي</button>
+        <button onclick="showFavorites()">عرض المفضلة</button>
+        <button onclick="showVideos()">يوتيوب</button>
+        <button onclick="promptCustomAthkar()">أكتب ذكرك بنفسك</button> <!-- الزر الجديد -->
+    </div>
+
+    <div id="athkar" class="container"></div>
+    <div id="video-list" class="video-grid" style="display: none;">
+        <iframe src="https://www.youtube.com/embed/B5IALnKOHqE" title="العوده للذنب بعد التوبة-الشيخ عثمان الخميس" allowfullscreen></iframe>
+        <iframe src="https://www.youtube.com/embed/5wXhtzqrmW0" title="ماذا لو الرسول بيننا؟" allowfullscreen></iframe>
+        <iframe src="https://www.youtube.com/embed/lTg-fAJpMSE" title="الإيمان بالقضاء والقدر" allowfullscreen></iframe>
+        <iframe src="https://www.youtube.com/embed/63_AOCldyXo" title="تذوق العبادات" allowfullscreen></iframe>
     </div>
 
     <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const messageBox = document.getElementById('message');
-        canvas.width = 600;
-        canvas.height = 500;
+        let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+        let currentSerial = '';
 
-        let player = {
-            x: canvas.width / 2 - 25,
-            y: canvas.height - 60,
-            width: 50,
-            height: 50,
-            color: 'cyan',
-            speed: 20,
-            weapon: 'pistol'
-        };
-
-        let bullets = [];
-        let enemies = [];
-        let score = 0;
-        let lives = 3;
-        let level = 1;
-        let enemySpeed = 2;
-        let autoPlay = false;
-
-        const messages = ["كفو!", "هذي بنت شمر", "حي عينتس"];
-        let messageIndex = 0;
-
-        function drawPlayer() {
-            ctx.fillStyle = player.color;
-            ctx.fillRect(player.x, player.y, player.width, player.height);
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            document.querySelectorAll('.container').forEach(container => container.classList.toggle('dark-mode'));
         }
 
-        function drawBullet(bullet) {
-            ctx.fillStyle = 'yellow';
-            ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
-        }
-
-        function drawEnemy(enemy) {
-            ctx.fillStyle = 'red';
-            ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
-        }
-
-        function spawnEnemy() {
-            let enemy = {
-                x: Math.random() * (canvas.width - 50),
-                y: -50,
-                width: 50,
-                height: 50,
-                speed: enemySpeed
-            };
-            enemies.push(enemy);
-        }
-
-        function update() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            drawPlayer();
-
-            bullets.forEach((bullet, index) => {
-                bullet.y -= bullet.speed;
-                drawBullet(bullet);
-
-                if (bullet.y < 0) bullets.splice(index, 1);
-            });
-
-            enemies.forEach((enemy, eIndex) => {
-                enemy.y += enemy.speed;
-                drawEnemy(enemy);
-
-                if (enemy.y > canvas.height && !autoPlay) {
-                    enemies.splice(eIndex, 1);
-                    lives -= 1;
-                    updateLives();
-                }
-
-                bullets.forEach((bullet, bIndex) => {
-                    if (bullet.x < enemy.x + enemy.width &&
-                        bullet.x + bullet.width > enemy.x &&
-                        bullet.y < enemy.y + enemy.height &&
-                        bullet.y + bullet.height > enemy.y) {
-                        bullets.splice(bIndex, 1);
-                        enemies.splice(eIndex, 1);
-                        score += 10;
-                        updateScore();
-                    }
-                });
-            });
-
-            if (lives <= 0 && !autoPlay) {
-                alert("Game Over! Your final score: " + score);
-                resetGame();
-            }
-
-            if (score >= level * 50) {
-                levelUp();
-            }
-
-            if (autoPlay) {
-                autoMoveAndShoot();
-            }
-
-            requestAnimationFrame(update);
-        }
-
-        function autoMoveAndShoot() {
-            player.x += player.speed * (Math.random() > 0.5 ? 1 : -1);
-            player.x = Math.max(0, Math.min(player.x, canvas.width - player.width));
-            shoot();
-            showMessage();
-        }
-
-        function showMessage() {
-            // تعيين الرسالة الحالية
-            messageBox.innerText = messages[messageIndex];
-            messageBox.style.left = Math.random() * (canvas.width - 100) + "px";
-            messageBox.style.top = Math.random() * (canvas.height - 50) + "px";
-            messageBox.style.display = 'block';
-            messageBox.style.opacity = "1";
-
-            // إخفاء الرسالة بعد 3 ثوانٍ وتحديث الرسالة التالية
-            setTimeout(() => {
-                messageBox.style.opacity = "0";  // يبدأ التلاشي
-                setTimeout(() => {
-                    messageBox.style.display = 'none'; // إخفاء الرسالة تمامًا
-                    messageIndex = (messageIndex + 1) % messages.length; // تحديث المؤشر
-                }, 1000);
-            }, 2000);
-        }
-
-        function shoot() {
-            let bullet = {
-                x: player.x + player.width / 2 - 2.5,
-                y: player.y,
-                width: player.weapon === 'pistol' ? 5 : 10,
-                height: player.weapon === 'pistol' ? 10 : 20,
-                speed: player.weapon === 'pistol' ? 5 : 8
-            };
-            bullets.push(bullet);
-        }
-
-        function moveLeft() {
-            if (player.x > 0) player.x -= player.speed;
-        }
-
-        function moveRight() {
-            if (player.x + player.width < canvas.width) player.x += player.speed;
-        }
-
-        function switchWeapon() {
-            player.weapon = player.weapon === 'pistol' ? 'rifle' : 'pistol';
-        }
-
-        function updateScore() {
-            document.getElementById('score').innerText = score;
-        }
-
-        function updateLives() {
-            document.getElementById('lives').innerText = lives;
-        }
-
-        function levelUp() {
-            level += 1;
-            enemySpeed += 1;
-            document.getElementById('level').innerText = level;
-            spawnEnemy();
-        }
-
-        function resetGame() {
-            score = 0;
-            lives = 3;
-            level = 1;
-            enemySpeed = 2;
-            bullets = [];
-            enemies = [];
-            updateScore();
-            updateLives();
-            document.getElementById('level').innerText = level;
-        }
-
-        function checkAnswer() {
-            let answer = prompt("من هي الفتاة التي لا تخسر ويجب على نظام العبه اللعب بدلًا منها و الفوز لأجلها؟");
-            if (answer === "ودوده") {
-                alert("إجابة صحيحة! سيتم تشغيل اللعبة بشكل تلقائي.");
-                autoPlay = true;
+        function login() {
+            const serial = document.getElementById('serial-input').value;
+            if (serial.length === 20) {
+                currentSerial = serial;
+                localStorage.setItem('userSerial', serial);
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('main-content').style.display = 'block';
             } else {
-                alert("إجابة خاطئة! استمر باللعب.");
+                alert('الرجاء إدخال رقم تسلسلي مكون من 20 رقمًا.');
             }
         }
 
-        setInterval(spawnEnemy, 2000);
-        update();
-        checkAnswer();
+        function generateSerial() {
+            const serial = 'xxxxxxxxxxxxxxxxxxxx'.replace(/[x]/g, () => (Math.random() * 9 | 0).toString());
+            currentSerial = serial;
+            localStorage.setItem('userSerial', serial);
+            alert(`رقمك التسلسلي: ${serial}\nصور الشاشة، لكي لا تنسى الرقم التسلسلي الخاص بك!`);
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('main-content').style.display = 'block';
+        }
+
+        function createAthkar(athkarArray) {
+            const athkarDiv = document.getElementById('athkar');
+            athkarDiv.innerHTML = '';
+            athkarArray.forEach((athkar, index) => {
+                const athkarElement = document.createElement('div');
+                athkarElement.innerHTML = `
+                    <p>${athkar.text}</p>
+                    <div class="counter" onclick="decrementCounter(this, ${athkar.repeat})">${athkar.repeat}</div>
+                    <span class="favorite" onclick="addToFavorites('${athkar.text}')">⭐</span>
+                `;
+                athkarDiv.appendChild(athkarElement);
+                athkarDiv.appendChild(document.createElement('hr'));
+            });
+        }
+
+        function decrementCounter(counter, limit) {
+            let count = parseInt(counter.innerText);
+            if (count > 1) {
+                counter.innerText = count - 1;
+            } else {
+                counter.style.backgroundColor = '#4CAF50';
+                counter.innerText = '✓';
+            }
+        }
+
+        function addToFavorites(athkarText) {
+            if (!favorites.includes(athkarText)) {
+                favorites.push(athkarText);
+                localStorage.setItem('favorites', JSON.stringify(favorites));
+                alert('تمت إضافة الذكر إلى المفضلة');
+            }
+        }
+
+        function showFavorites() {
+            const favoriteAthkar = favorites.map(text => ({ text, repeat: 1 }));
+            createAthkar(favoriteAthkar);
+        }
+
+        function promptCustomAthkar() {
+            const customText = prompt("أكتب ذكرك بنفسك:");
+            if (customText) {
+                const repeatCount = prompt("كم عدد التكرارات؟");
+                if (repeatCount && !isNaN(repeatCount)) {
+                    const customAthkar = { text: customText, repeat: parseInt(repeatCount) };
+                    addToFavorites(customAthkar.text + " - تكرار: " + customAthkar.repeat);
+                } else {
+                    alert("الرجاء إدخال رقم صالح للتكرار.");
+                }
+            }
+        }
+
+        function showMorning() {
+            const morningAthkar = [
+                { text: "بسم الله الذي لا يضر مع اسمه شيء في الأرض ولا في السماء وهو السميع العليم.", repeat: 3 },
+                { text: "اللهم بك أصبحنا، وبك أمسينا، وبك نحيا، وبك نموت وإليك النشور.", repeat: 1 }
+            ];
+            createAthkar(morningAthkar);
+        }
+
+        function showEvening() {
+            const eveningAthkar = [
+                { text: "أعوذ بكلمات الله التامات من شر ما خلق.", repeat: 3 },
+                { text: "اللهم إني أمسيت أشهدك وأشهد حملة عرشك وملائكتك وجميع خلقك أنك أنت الله لا إله إلا أنت وحدك لا شريك لك وأن محمدا عبدك ورسولك.", repeat: 4 }
+            ];
+            createAthkar(eveningAthkar);
+        }
     </script>
 </body>
 </html>
