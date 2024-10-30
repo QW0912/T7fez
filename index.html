@@ -94,6 +94,18 @@
             cursor: pointer;
             margin-left: 10px;
         }
+        .video-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        iframe {
+            width: 100%;
+            height: 200px;
+            border-radius: 10px;
+            border: 2px solid #00796b;
+        }
     </style>
 </head>
 <body>
@@ -103,14 +115,20 @@
         <button onclick="showEvening()">أذكار المساء</button>
         <button onclick="showRandom()">ذكر عشوائي</button>
         <button onclick="showFavorites()">عرض المفضلة</button>
-        <button onclick="promptCustomAthkar()">أكتب ذكرك بنفسك</button> <!-- زر إضافة ذكر مخصص -->
+        <button onclick="showVideos()">يوتيوب</button>
+        <button onclick="promptCustomAthkar()">أكتب ذكرك بنفسك</button>
     </div>
 
     <div id="athkar" class="container"></div>
+    <div id="video-list" class="video-grid" style="display: none;">
+        <iframe src="https://www.youtube.com/embed/B5IALnKOHqE" title="العوده للذنب بعد التوبة-الشيخ عثمان الخميس" allowfullscreen></iframe>
+        <iframe src="https://www.youtube.com/embed/5wXhtzqrmW0" title="ماذا لو الرسول بيننا؟" allowfullscreen></iframe>
+        <iframe src="https://www.youtube.com/embed/lTg-fAJpMSE" title="الإيمان بالقضاء والقدر" allowfullscreen></iframe>
+        <iframe src="https://www.youtube.com/embed/63_AOCldyXo" title="تذوق العبادات" allowfullscreen></iframe>
+    </div>
 
     <script>
         let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
-        let currentCustomRepeat = 0;
 
         function toggleDarkMode() {
             document.body.classList.toggle('dark-mode');
@@ -120,7 +138,7 @@
         function createAthkar(athkarArray) {
             const athkarDiv = document.getElementById('athkar');
             athkarDiv.innerHTML = '';
-            athkarArray.forEach((athkar, index) => {
+            athkarArray.forEach((athkar) => {
                 const athkarElement = document.createElement('div');
                 athkarElement.innerHTML = `
                     <p>${athkar.text}</p>
@@ -162,7 +180,6 @@
                 const repeatCount = prompt("كم عدد التكرارات؟");
                 if (repeatCount && !isNaN(repeatCount)) {
                     const customAthkar = { text: customText, repeat: parseInt(repeatCount) };
-                    currentCustomRepeat = customAthkar.repeat;
                     createAthkar([customAthkar]);
                 } else {
                     alert("الرجاء إدخال رقم صالح للتكرار.");
@@ -173,7 +190,11 @@
         function showMorning() {
             const morningAthkar = [
                 { text: "بسم الله الذي لا يضر مع اسمه شيء في الأرض ولا في السماء وهو السميع العليم.", repeat: 3 },
-                { text: "اللهم بك أصبحنا، وبك أمسينا، وبك نحيا، وبك نموت وإليك النشور.", repeat: 1 }
+                { text: "اللهم بك أصبحنا، وبك أمسينا، وبك نحيا، وبك نموت وإليك النشور.", repeat: 1 },
+                { text: "أصبحنا على فطرة الإسلام، وعلى كلمة الإخلاص، وعلى دين نبينا محمد ﷺ، وعلى ملة أبينا إبراهيم.", repeat: 1 },
+                { text: "اللهم إني أصبحت أشهدك وأشهد حملة عرشك وملائكتك وجميع خلقك أنك أنت الله لا إله إلا أنت وحدك لا شريك لك وأن محمدا عبدك ورسولك.", repeat: 4 },
+                { text: "رضيت بالله ربا، وبالإسلام دينا، وبمحمد صلى الله عليه وسلم نبيا.", repeat: 3 },
+                { text: "اللهم عافني في بدني، اللهم عافني في سمعي، اللهم عافني في بصري، لا إله إلا أنت.", repeat: 3 }
             ];
             createAthkar(morningAthkar);
         }
@@ -181,9 +202,34 @@
         function showEvening() {
             const eveningAthkar = [
                 { text: "أعوذ بكلمات الله التامات من شر ما خلق.", repeat: 3 },
-                { text: "اللهم إني أمسيت أشهدك وأشهد حملة عرشك وملائكتك وجميع خلقك أنك أنت الله لا إله إلا أنت وحدك لا شريك لك وأن محمدا عبدك ورسولك.", repeat: 4 }
+                { text: "اللهم إني أمسيت أشهدك وأشهد حملة عرشك وملائكتك وجميع خلقك أنك أنت الله لا إله إلا أنت وحدك لا شريك لك وأن محمدا عبدك ورسولك.", repeat: 4 },
+                { text: "اللهم بك أمسينا، وبك أصبحنا، وبك نحيا، وبك نموت وإليك المصير.", repeat: 1 },
+                { text: "أمسينا وأمسى الملك لله، والحمد لله، لا إله إلا الله وحده لا شريك له، له الملك وله الحمد وهو على كل شيء قدير.", repeat: 1 },
+                { text: "اللهم إني أسألك العافية في الدنيا والآخرة، اللهم إني أسألك العفو والعافية في ديني ودنياي وأهلي ومالي.", repeat: 1 }
             ];
             createAthkar(eveningAthkar);
+        }
+
+        function showRandom() {
+            const randomAthkar = [
+                "اللهم بك أصبحنا وبك أمسينا وبك نحيا وبك نموت وإليك المصير.",
+                "اللهم إني أعوذ بك من الهم والحزن، وأعوذ بك من العجز والكسل.",
+                "أستغفر الله العظيم الذي لا إله إلا هو الحي القيوم وأتوب إليه.",
+                "يا حي يا قيوم برحمتك أستغيث، أصلح لي شأني كله.",
+                "اللهم صل وسلم على نبينا محمد.",
+                "أعوذ بكلمات الله التامات من شر ما خلق.",
+                "اللهم إني أسألك العفو والعافية.",
+                "سبحان الله وبحمده، سبحان الله العظيم.",
+                "اللهم اغفر لي وارحمني واهدني وعافني وارزقني.",
+                "رب اغفر لي وتب علي إنك أنت التواب الرحيم."
+            ];
+            const randomIndex = Math.floor(Math.random() * randomAthkar.length);
+            alert(randomAthkar[randomIndex]);
+        }
+
+        function showVideos() {
+            const videoList = document.getElementById('video-list');
+            videoList.style.display = videoList.style.display === 'none' ? 'grid' : 'none';
         }
     </script>
 </body>
