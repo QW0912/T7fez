@@ -5,66 +5,116 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>أذكار الصباح والمساء والقرآن الكريم</title>
     <style>
-        /* أكمل باقي التنسيقات هنا */
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f0f7fa;
+            text-align: center;
+            direction: rtl;
+            margin: 0;
+            padding: 0;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        body.dark-mode {
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+        h1 {
+            color: #00796b;
+            margin-top: 30px;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+            margin: 40px auto;
+            padding: 30px;
+            width: 90%;
+            max-width: 600px;
+            transition: background-color 0.3s, color 0.3s;
+            position: relative;
+        }
+        .container.dark-mode {
+            background-color: #333;
+            color: #e0e0e0;
+        }
+        button {
+            font-size: 18px;
+            padding: 15px;
+            margin: 10px 0;
+            width: 100%;
+            border-radius: 10px;
+            border: none;
+            background-color: #00796b;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            background-color: #004d40;
+            transform: scale(1.05);
+        }
+        .dark-mode-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 8px 12px;
+            font-size: 14px;
+            border-radius: 8px;
+            background-color: #555;
+            color: #fff;
+            cursor: pointer;
+        }
+        .dark-mode-btn:hover {
+            background-color: #333;
+        }
+        hr {
+            border: none;
+            border-top: 2px solid #00796b;
+            margin: 20px 0;
+        }
+        .counter {
+            display: inline-block;
+            font-size: 16px;
+            background-color: #e0f2f1;
+            color: #00796b;
+            padding: 5px 10px;
+            border-radius: 5px;
+            margin-left: 5px;
+            cursor: pointer;
+            user-select: none;
+        }
+        .counter.completed {
+            background-color: #4CAF50;
+            color: #fff;
+        }
+        .favorite {
+            display: inline-block;
+            font-size: 20px;
+            color: #ffdd57;
+            cursor: pointer;
+            margin-left: 10px;
+        }
     </style>
 </head>
 <body>
-    <div id="login-screen" class="container">
-        <h1>مرحبًا بك في موقع الأذكار</h1>
-        <p>أدخل الرقم التسلسلي الخاص بك:</p>
-        <input type="text" id="serial-input" placeholder="الرقم التسلسلي المكون من 20 رقمًا" maxlength="20">
-        <br>
-        <button onclick="login()">الدخول</button>
-        <button onclick="generateSerial()">الحصول على رقم تسلسلي جديد</button>
-        <div class="footer">المطور: <a href="https://www.instagram.com/_w0112" target="_blank">@_w0112</a></div>
-    </div>
-
-    <div id="main-content" class="container" style="display: none;">
+    <div id="main-content" class="container">
         <button class="dark-mode-btn" onclick="toggleDarkMode()">تبديل الوضع الليلي</button>
         <button onclick="showMorning()">أذكار الصباح</button>
         <button onclick="showEvening()">أذكار المساء</button>
         <button onclick="showRandom()">ذكر عشوائي</button>
         <button onclick="showFavorites()">عرض المفضلة</button>
-        <button onclick="showVideos()">يوتيوب</button>
-        <button onclick="promptCustomAthkar()">أكتب ذكرك بنفسك</button> <!-- الزر الجديد -->
+        <button onclick="promptCustomAthkar()">أكتب ذكرك بنفسك</button> <!-- زر إضافة ذكر مخصص -->
     </div>
 
     <div id="athkar" class="container"></div>
-    <div id="video-list" class="video-grid" style="display: none;">
-        <iframe src="https://www.youtube.com/embed/B5IALnKOHqE" title="العوده للذنب بعد التوبة-الشيخ عثمان الخميس" allowfullscreen></iframe>
-        <iframe src="https://www.youtube.com/embed/5wXhtzqrmW0" title="ماذا لو الرسول بيننا؟" allowfullscreen></iframe>
-        <iframe src="https://www.youtube.com/embed/lTg-fAJpMSE" title="الإيمان بالقضاء والقدر" allowfullscreen></iframe>
-        <iframe src="https://www.youtube.com/embed/63_AOCldyXo" title="تذوق العبادات" allowfullscreen></iframe>
-    </div>
 
     <script>
         let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
-        let currentSerial = '';
+        let currentCustomRepeat = 0;
 
         function toggleDarkMode() {
             document.body.classList.toggle('dark-mode');
             document.querySelectorAll('.container').forEach(container => container.classList.toggle('dark-mode'));
-        }
-
-        function login() {
-            const serial = document.getElementById('serial-input').value;
-            if (serial.length === 20) {
-                currentSerial = serial;
-                localStorage.setItem('userSerial', serial);
-                document.getElementById('login-screen').style.display = 'none';
-                document.getElementById('main-content').style.display = 'block';
-            } else {
-                alert('الرجاء إدخال رقم تسلسلي مكون من 20 رقمًا.');
-            }
-        }
-
-        function generateSerial() {
-            const serial = 'xxxxxxxxxxxxxxxxxxxx'.replace(/[x]/g, () => (Math.random() * 9 | 0).toString());
-            currentSerial = serial;
-            localStorage.setItem('userSerial', serial);
-            alert(`رقمك التسلسلي: ${serial}\nصور الشاشة، لكي لا تنسى الرقم التسلسلي الخاص بك!`);
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('main-content').style.display = 'block';
         }
 
         function createAthkar(athkarArray) {
@@ -74,7 +124,7 @@
                 const athkarElement = document.createElement('div');
                 athkarElement.innerHTML = `
                     <p>${athkar.text}</p>
-                    <div class="counter" onclick="decrementCounter(this, ${athkar.repeat})">${athkar.repeat}</div>
+                    <div class="counter" onclick="decrementCounter(this, ${athkar.repeat}, '${athkar.text}')">${athkar.repeat}</div>
                     <span class="favorite" onclick="addToFavorites('${athkar.text}')">⭐</span>
                 `;
                 athkarDiv.appendChild(athkarElement);
@@ -82,13 +132,14 @@
             });
         }
 
-        function decrementCounter(counter, limit) {
+        function decrementCounter(counter, limit, athkarText) {
             let count = parseInt(counter.innerText);
             if (count > 1) {
                 counter.innerText = count - 1;
             } else {
-                counter.style.backgroundColor = '#4CAF50';
+                counter.classList.add('completed');
                 counter.innerText = '✓';
+                addToFavorites(athkarText);
             }
         }
 
@@ -111,7 +162,8 @@
                 const repeatCount = prompt("كم عدد التكرارات؟");
                 if (repeatCount && !isNaN(repeatCount)) {
                     const customAthkar = { text: customText, repeat: parseInt(repeatCount) };
-                    addToFavorites(customAthkar.text + " - تكرار: " + customAthkar.repeat);
+                    currentCustomRepeat = customAthkar.repeat;
+                    createAthkar([customAthkar]);
                 } else {
                     alert("الرجاء إدخال رقم صالح للتكرار.");
                 }
