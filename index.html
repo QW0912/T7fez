@@ -205,7 +205,7 @@
                 const athkarElement = document.createElement('div');
                 athkarElement.innerHTML = `
                     <p>${athkar.text}</p>
-                    <div class="counter" onclick="decrementCounter(this, ${athkar.repeat})">${athkar.repeat}</div>
+                    <div class="counter" onclick="decrementCounter(this)">${athkar.repeat}</div>
                     <span class="favorite" onclick="addToFavorites('${athkar.text}')">⭐</span>
                 `;
                 athkarDiv.appendChild(athkarElement);
